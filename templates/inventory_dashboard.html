@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="container-fluid w-100 col-md-12">
+            <div class="card-body col-md-4 w-50">
+                <a href="{% url 'add_inventory_transaction' %}" class="btn btn-primary">Add Inventory Transaction</a>
+            </div>
+            <div class="card-body col-md-4 w-50">
+                <a href="{% url 'add_product' %}" class="btn btn-primary">Add Product</a>
+            </div>
+        </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info mb-5">
+            <div class="card-header">Total Inventory Value</div>
+            <div class="card-body">
+                <h5 class="card-title">${{ total_value }}</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3>Recent Inventory Transactions</h3>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Item</th>
+            <th>Type</th>
+            <th>Quantity</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for transaction in transactions %}
+        <tr>
+            <td>{{ transaction.date }}</td>
+            <td>{{ transaction.item.name }}</td>
+            <td>{{ transaction.get_transaction_type_display }}</td>
+            <td>{{ transaction.quantity }}</td>
+            <td>{{ transaction.description }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
