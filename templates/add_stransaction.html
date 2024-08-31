@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Add Transaction</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const transactionTypeField = document.querySelector('#id_transaction_type');
+                const customerField = document.querySelector('#id_customer');
+                const supplierField = document.querySelector('#id_supplier');
+
+                function updateFields() {
+                    const transactionType = transactionTypeField.value;
+                    if (transactionType === 'S') {  // Sale
+                        customerField.parentElement.style.display = 'block';
+                        supplierField.parentElement.style.display = 'none';
+                    } else if (transactionType === 'P') {  // Purchase
+                        customerField.parentElement.style.display = 'none';
+                        supplierField.parentElement.style.display = 'block';
+                    }
+                }
+
+                transactionTypeField.addEventListener('change', updateFields);
+                updateFields();  // Initial call to set the right visibility
+            });
+        </script>
+
+        <button type="submit" class="btn btn-primary">Add Transaction</button>
+    </form>
+</div>
+{% endblock %}

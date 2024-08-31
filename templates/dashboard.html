@@ -1,48 +1,100 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
-
-<div class="row">
-    <div class="col-md-4">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-header">Total Credit</div>
-            <div class="card-body">
-                <h5 class="card-title">${{ total_credit }}</h5>
+<div class="container">
+    <h2>Dashboard</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Today's Debit</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ daily_debit }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Today's Credit</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ daily_credit }}</h5>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-danger mb-3">
-            <div class="card-header">Total Debit</div>
-            <div class="card-body">
-                <h5 class="card-title">${{ total_debit }}</h5>
+    <br>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Total Debit</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_debit }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Total Credit</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_credit }}</h5>
+                </div>
             </div>
         </div>
     </div>
-    
+    <br>
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Recent Sales Transactions</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Total Amount</th>
+                        <th>Pay Amount</th>
+                        <th>Payment Type</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in stransactions %}
+                    <tr>
+                        <td>{{ transaction.customer.name }}</td>
+                        <td>{{ transaction.total_amount }}</td>
+                        <td>{{ transaction.pay_amount }}</td>
+                        <td>{{ transaction.payment_type }}</td>
+                        <td>{{ transaction.date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Recent Purchase Transactions</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Supplier</th>
+                        <th>Total Amount</th>
+                        <th>Pay Amount</th>
+                        <th>Payment Type</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in ptransactions %}
+                    <tr>
+                        <td>{{ transaction.supplier.name }}</td>
+                        <td>{{ transaction.total_amount }}</td>
+                        <td>{{ transaction.pay_amount }}</td>
+                        <td>{{ transaction.payment_type }}</td>
+                        <td>{{ transaction.date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-<h3>Recent Transactions</h3>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Customer</th>
-            <th>Type</th>
-            <th>Amount</th>
-            <th>Description</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for transaction in transactions %}
-        <tr>
-            <td>{{ transaction.date }}</td>
-            <td>{{ transaction.customer.name }}</td>
-            <td>{{ transaction.get_transaction_type_display }}</td>
-            <td>${{ transaction.amount }}</td>
-            <td>{{ transaction.description }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
 {% endblock %}
