@@ -15,6 +15,7 @@
                 <th><a href="?sort=gender">Gender</a></th>
                 <th><a href="?sort=email">Email ID</a></th>
                 <th><a href="?sort=address">Address</a></th>
+                <th><a href="?sort=balance">Balance</a></th>
                 <th><a href="?sort=created_at">Joined</a></th>
                 <th>Actions</th>
             </tr>
@@ -28,6 +29,7 @@
                 <td>{{ customer.gender }}</td>
                 <td>{{ customer.email }}</td>
                 <td>{{ customer.address }}</td>
+                <td>{{ customer.balance }}</td>
                 <td>{{ customer.created_at|date:"d M Y" }}</td>
                 <td>
                     <a href="{% url 'edit_customer' customer.id %}" class="btn btn-sm btn-warning">Edit</a>

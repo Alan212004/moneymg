@@ -28,7 +28,7 @@ class Customer(models.Model):
 
 class Supplier(models.Model):
     name = models.CharField(max_length=255)
-    phone = PhoneNumberField(max_length=12, null=True, blank=True, validators=[MinLengthValidator(10)])
+    phone = PhoneNumberField(max_length=15, null=True, blank=True, validators=[MinLengthValidator(10)])
     address = models.TextField(max_length=100, blank=True, null=True)
     email = models.EmailField(unique=True, blank=True, null=True) 
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)

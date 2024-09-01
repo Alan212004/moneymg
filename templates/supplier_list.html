@@ -1,21 +1,39 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h3>All Suppliers</h3>
-<table class="table table-hover">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Contact Information</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for supplier in suppliers %}
-        <tr>
-            <td>{{ supplier.name }}</td>
-            <td>{{ supplier.contact_info }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="container-fluid m-4">
+    <h2>Suppliers List</h2>
+    
+
+    {% if suppliers %}
+    <table class="table table-striped table-responsive-md">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Email</th>
+                <th>Balance</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for supplier in suppliers %}
+            <tr>
+                <td>{{ supplier.name }}</td>
+                <td>{{ supplier.phone }}</td>
+                <td>{{ supplier.address }}</td>
+                <td>{{ supplier.email }}</td>
+                <td>{{ supplier.balance }}</td>
+                <td>
+                    <a href="{% url 'delete_supplier' supplier.pk %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this Supplier?');">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No Suppliers found.</p>
+    {% endif %}
+</div>
 {% endblock %}
