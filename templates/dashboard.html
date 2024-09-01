@@ -4,22 +4,26 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar for Balances -->
-        <aside class="col-md-3 bg-light sidebar">
+        <aside class="col-md-3 bg-white sidebar">
             <!-- Customer Balances -->
-            <div class="mt-4">
+            <div class="mt-4 ">
                 <h3>Customer Balances</h3>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Balance</th>
+                <table class="table table-striped ">
+                    <thead class="bg-secondary text-white">
+                        <tr class="border-secondary">
+                            <th class="border-secondary">Name</th>
+                            <th class="border-secondary">Balance</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="border-secondary">
                         {% for customer in customers %}
+                        <tr class="border-secondary">
+                            <td class="border-secondary">{{ customer.name }}</td>
+                            <td class="border-secondary">₹ {{ customer.balance }}</td>
+                        </tr>
+                        {% empty %}
                         <tr>
-                            <td>{{ customer.name }}</td>
-                            <td>{{ customer.balance }}</td>
+                            <td colspan="2">No customers available.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -30,7 +34,7 @@
             <div class="mt-4">
                 <h3>Supplier Balances</h3>
                 <table class="table table-striped">
-                    <thead>
+                    <thead class="bg-secondary text-white">
                         <tr>
                             <th>Name</th>
                             <th>Balance</th>
@@ -39,8 +43,12 @@
                     <tbody>
                         {% for supplier in suppliers %}
                         <tr>
-                            <td>{{ supplier.name }}</td>
-                            <td>{{ supplier.balance }}</td>
+                            <td class="border-success">{{ supplier.name }}</td>
+                            <td class="border-success">₹ {{ supplier.balance }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2">No suppliers available.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -52,98 +60,136 @@
         <main class="col-md-9 ml-sm-auto col-lg-9 px-4">
             <h2>Dashboard</h2>
             <div class="row">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">Today's Debit</div>
+                <!-- Daily Debit Card -->
+                <div class="col-md-4 mb-3 col-lg-6 ">
+                    <div class="card border-warning  shadow-lg ">
+                        <div class="card-header bg-warning text-white">
+                            Daily Debit
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">{{ daily_debit }}</h5>
+                            <h5 class="card-title">₹ {{ daily_debit }}</h5>
+                            <p class="card-text">Total debit transactions for today.</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">Today's Credit</div>
+
+                <!-- Daily Credit Card -->
+                <div class="col-md-4 mb-3 col-lg-6">
+                    <div class="card border-info">
+                        <div class="card-header bg-info text-white">
+                            Daily Credit
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">{{ daily_credit }}</h5>
+                            <h5 class="card-title">₹ {{ daily_credit }}</h5>
+                            <p class="card-text">Total credit transactions for today.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Debit Card -->
+                <div class="col-md-4 mb-3 col-lg-6">
+                    <div class="card border-danger">
+                        <div class="card-header bg-danger text-white">
+                            Total Debit
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">₹ {{ total_debit }}</h5>
+                            <p class="card-text">Total debit transactions overall.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Credit Card -->
+                <div class="col-md-4 mb-3 col-lg-6">
+                    <div class="card border-success">
+                        <div class="card-header bg-success text-white">
+                            Total Credit
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">₹ {{ total_credit }}</h5>
+                            <p class="card-text">Total credit transactions overall.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unpaid Amounts Card -->
+                <div class="col-md-4 mb-3 col-lg-6">
+                    <div class="card border-secondary">
+                        <div class="card-header bg-secondary text-white">
+                            Unpaid Amounts
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">₹ {{ unpaid_amounts }}</h5>
+                            <p class="card-text">Total unpaid amounts in Purchase.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paid Amounts Card -->
+                <div class="col-md-4 mb-3 col-lg-6">
+                    <div class="card border-dark">
+                        <div class="card-header bg-dark text-white">
+                            Paid Amounts
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">₹ {{ paid_amounts }}</h5>
+                            <p class="card-text">Total paid amounts in Purchase.</p>
                         </div>
                     </div>
                 </div>
             </div>
-            <br>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">Total Debit</div>
-                        <div class="card-body">
-                            <h5 class="card-title">{{ total_debit }}</h5>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">Total Credit</div>
-                        <div class="card-body">
-                            <h5 class="card-title">{{ total_credit }}</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <br>
-            <div class="row">
-                <div class="col-md-12">
-                    <h3>Recent Sales Transactions</h3>
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Customer</th>
-                                <th>Total Amount</th>
-                                <th>Pay Amount</th>
-                                <th>Payment Type</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for transaction in stransactions %}
-                            <tr>
-                                <td>{{ transaction.customer.name }}</td>
-                                <td>{{ transaction.total_amount }}</td>
-                                <td>{{ transaction.pay_amount }}</td>
-                                <td>{{ transaction.payment_type }}</td>
-                                <td>{{ transaction.date }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <br>
-            <div class="row">
-                <div class="col-md-12">
-                    <h3>Recent Purchase Transactions</h3>
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Supplier</th>
-                                <th>Total Amount</th>
-                                <th>Pay Amount</th>
-                                <th>Payment Type</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for transaction in ptransactions %}
-                            <tr>
-                                <td>{{ transaction.supplier.name }}</td>
-                                <td>{{ transaction.total_amount }}</td>
-                                <td>{{ transaction.pay_amount }}</td>
-                                <td>{{ transaction.payment_type }}</td>
-                                <td>{{ transaction.date }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
+            <h3>Recent Sales Transactions</h3>
+            <table class="table table-bordered">
+                <thead class="bg-info text-white">
+                    <tr >
+                        <th class="border-info">Customer</th>
+                        <th class="border-info">Total Amount</th>
+                        <th class="border-info">Pay Amount</th>
+                        <th class="border-info">Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in stransactions %}
+                    <tr>
+                        <td class="border-info">{{ transaction.customer }}</td>
+                        <td class="border-info">₹ {{ transaction.total_amount }}</td>
+                        <td class="border-info">₹ {{ transaction.pay_amount }}</td>
+                        <td class="border-info">{{ transaction.date }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No recent sales transactions.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <h3>Recent Purchase Transactions</h3>
+            <table class="table table-bordered">
+                <thead class="bg-info text-white">
+                    <tr>
+                        <th class="border-info">Supplier</th>
+                        <th class="border-info">Total Amount</th>
+                        <th class="border-info">Pay Amount</th>
+                        <th class="border-info">Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in ptransactions %}
+                    <tr>
+                        <td class="border-info">{{ transaction.supplier }}</td>
+                        <td class="border-info">₹ {{ transaction.total_amount }}</td>
+                        <td class="border-info">₹ {{ transaction.pay_amount }}</td>
+                        <td class="border-info">{{ transaction.date }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No recent purchase transactions.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </main>
     </div>
 </div>

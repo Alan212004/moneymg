@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container">
+<div class="container-fluid p-4">
     <h2>Sales Transactions</h2>
 
-    <form method="post" class="form-inline">
+    <form method="post" class="form-inline m-1">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Add Sale</button>
+        <button type="submit" class="btn btn-primary m-3">Add Sale</button>
     </form>
     <br>
     <h3>Existing Sales Transactions</h3>

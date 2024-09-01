@@ -1,23 +1,33 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Sum
+from django.db.models import Sum, F, Case, When, Value, FloatField, ExpressionWrapper
 from django.utils import timezone
 from .models import Customer, Supplier, STransaction, PTransaction
 from .forms import CustomerForm, STransactionForm, PTransactionForm, SupplierForm
 
-# Dashboard view
 def dashboard_view(request):
-    # Fetch all customers and suppliers with their balances
+    # Fetch all customers and suppliers
     customers = Customer.objects.all()
     suppliers = Supplier.objects.all()
 
-    # Calculate daily debit and credit using STransaction and PTransaction
+    # Calculate today's date
     today = timezone.now().date()
-    daily_debit = STransaction.objects.filter(date=today).aggregate(Sum('pay_amount'))['pay_amount__sum'] or 0
-    daily_credit = PTransaction.objects.filter(date=today).aggregate(Sum('pay_amount'))['pay_amount__sum'] or 0
 
-    # Calculate total debit and credit using STransaction and PTransaction
-    total_debit = STransaction.objects.aggregate(Sum('pay_amount'))['pay_amount__sum'] or 0
-    total_credit = PTransaction.objects.aggregate(Sum('pay_amount'))['pay_amount__sum'] or 0
+    # Calculate daily debit and credit using STransaction (Sales Transactions only)
+    daily_credit = STransaction.objects.filter(date=today).aggregate(total=Sum('pay_amount'))['total'] or 0
+    daily_debit = (STransaction.objects.filter(date=today).aggregate(total=Sum('total_amount'))['total'] or 0) - daily_credit
+
+    # Calculate total debit and credit using STransaction (Sales Transactions only)
+    total_credit = STransaction.objects.aggregate(total=Sum('pay_amount'))['total'] or 0
+    total_debit = (STransaction.objects.aggregate(total=Sum('total_amount'))['total'] or 0) - total_credit
+
+      # Calculate total amount for purchase transactions
+    total_purchase_amount = PTransaction.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+
+    # Calculate paid amounts (total of pay_amounts in purchase transactions)
+    paid_amounts = PTransaction.objects.aggregate(total_paid=Sum('pay_amount'))['total_paid'] or 0
+
+    # Calculate unpaid amounts for suppliers (purchase transactions)
+    unpaid_amounts = total_purchase_amount - paid_amounts or  0
 
     # Fetch recent sales transactions from STransaction and purchase transactions from PTransaction
     stransactions = STransaction.objects.order_by('-date')[:5]
@@ -30,6 +40,9 @@ def dashboard_view(request):
         'daily_credit': daily_credit,
         'total_debit': total_debit,
         'total_credit': total_credit,
+        'total_purchase_amount': total_purchase_amount,
+        'unpaid_amounts': unpaid_amounts,
+        'paid_amounts': paid_amounts,
         'stransactions': stransactions,
         'ptransactions': ptransactions,
     }
@@ -42,13 +55,26 @@ def transaction_success(request):
 
 # Customer list view
 def customer_list(request):
-    customers = Customer.objects.all()
-    return render(request, 'customers.html', {'customers': customers})
+    sort = request.GET.get('sort', 'name')  # Default sort by 'name'
+    if sort.startswith('-'):
+        sort_field = sort[1:]
+        customers = Customer.objects.all().order_by('-' + sort_field)
+    else:
+        customers = Customer.objects.all().order_by(sort)
+    
+    return render(request, 'customers.html', {'customers': customers, 'sort': sort})
 
 # Supplier list view
 def supplier_list(request):
-    suppliers = Supplier.objects.all()
-    return render(request, 'supplier_list.html', {'suppliers': suppliers})
+    sort = request.GET.get('sort', 'name')  # Default sort by 'name'
+    
+    # Check if the sort key starts with a minus for descending order
+    if sort.startswith('-'):
+        suppliers = Supplier.objects.all().order_by(sort)
+    else:
+        suppliers = Supplier.objects.all().order_by(sort)
+    
+    return render(request, 'supplier_list.html', {'suppliers': suppliers, 'sort': sort})
 
 # Add customer view
 def add_customer(request):
@@ -88,7 +114,6 @@ def sales_transactions(request):
     
     return render(request, 'sales_transactions.html', {'form': form, 'sales_transactions': sales_transactions})
 
-# Purchase transactions view
 def purchase_transactions(request):
     purchase_transactions = PTransaction.objects.all()
     if request.method == 'POST':
@@ -97,16 +122,18 @@ def purchase_transactions(request):
             transaction = form.save(commit=False)
             supplier = transaction.supplier
 
-            # Update supplier's balance if pay amount is less than total
+            # Calculate unpaid amount or excess payment
             if transaction.pay_amount < transaction.total_amount:
-                balance_to_update = transaction.total_amount - transaction.pay_amount
-                supplier.balance += balance_to_update
-                supplier.save()
+                # If paid amount is less than the total, increase the supplier's balance
+                unpaid_amount = transaction.total_amount - transaction.pay_amount
+                supplier.balance += unpaid_amount
             elif transaction.pay_amount > transaction.total_amount:
-                balance_to_update = transaction.pay_amount - transaction.total_amount
-                supplier.balance -= balance_to_update
-                supplier.save()    
+                # If paid amount is more than the total, decrease the supplier's balance
+                excess_payment = transaction.pay_amount - transaction.total_amount
+                supplier.balance -= excess_payment
+            # If pay_amount is equal to total_amount, no change to supplier's balance
 
+            supplier.save()
             transaction.save()
             return redirect('purchase_transactions')
     else:

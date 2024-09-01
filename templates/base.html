@@ -6,25 +6,26 @@
     <title>{% block title %}Money Management{% endblock %}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
+
 <body style="margin: 0; width: 100%;">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="{% url 'dashboard' %}">Dashboard</a>
+    <nav class="navbar navbar-expand-lg navbar-light bg-primary sticky-top w-100">
+        <a class="navbar-brand text-white" href="{% url 'dashboard' %}">Dashboard</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'sales_transactions' %}">Sales</a>
+                    <a class="nav-link text-white" href="{% url 'sales_transactions' %}">Sales</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'purchase_transactions' %}">Purchases</a>
+                    <a class="nav-link text-white" href="{% url 'purchase_transactions' %}">Purchases</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
+                    <a class="nav-link text-white" href="{% url 'customer_list' %}">Customers</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'supplier_list' %}">Suppliers</a>
+                    <a class="nav-link text-white" href="{% url 'supplier_list' %}">Suppliers</a>
                 </li>
             </ul>
         </div>
@@ -42,5 +43,10 @@
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <style>
+        .navbar{
+            position: sticky;
+        }
+    </style>
 </body>
 </html>

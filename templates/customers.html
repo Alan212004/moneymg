@@ -1,22 +1,70 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container">
+<div class="container-fluid p-2">
     <h2>Customers</h2>
     <a href="{% url 'add_customer' %}" class="btn btn-success mb-4">Add Customer</a>
 
     {% if customers %}
     <table class="table table-striped table-responsive-md">
-        <thead>
+        <thead class="thead-dark">
             <tr>
-                <th><a href="?sort=name">Name</a></th>
-                <th><a href="?sort=nick_name">Nick Name</a></th>
-                <th><a href="?sort=phone">Phone</a></th>
-                <th><a href="?sort=gender">Gender</a></th>
-                <th><a href="?sort=email">Email ID</a></th>
-                <th><a href="?sort=address">Address</a></th>
-                <th><a href="?sort=balance">Balance</a></th>
-                <th><a href="?sort=created_at">Joined</a></th>
+                <th>
+                    {% if sort == 'name' %}
+                        <a href="?sort=-name">Name</a>
+                    {% else %}
+                        <a href="?sort=name">Name</a>
+                    {% endif %}
+                </th>
+                <th>
+                    {% if sort == 'nick_name' %}
+                        <a href="?sort=-nick_name">Nick Name</a>
+                    {% else %}
+                        <a href="?sort=nick_name">Nick Name</a>
+                    {% endif %}
+                </th>
+                <th>
+                    {% if sort == 'phone' %}
+                        <a href="?sort=-phone">Phone</a>
+                    {% else %}
+                        <a href="?sort=phone">Phone</a>
+                    {% endif %}
+                </th>
+                <th>
+                    {% if sort == 'gender' %}
+                        <a href="?sort=-gender">Gender</a>
+                    {% else %}
+                        <a href="?sort=gender">Gender</a>
+                    {% endif %}
+                </th>
+                <th>
+                    {% if sort == 'email' %}
+                        <a href="?sort=-email">Email ID</a>
+                    {% else %}
+                        <a href="?sort=email">Email ID</a>
+                    {% endif %}
+                </th>
+                <th>
+                    {% if sort == 'address' %}
+                        <a href="?sort=-address">Address</a>
+                    {% else %}
+                        <a href="?sort=address">Address</a>
+                    {% endif %}
+                </th>
+                <th>
+                    {% if sort == 'balance' %}
+                        <a href="?sort=-balance">Balance</a>
+                    {% else %}
+                        <a href="?sort=balance">Balance</a>
+                    {% endif %}
+                </th>
+                <th>
+                    {% if sort == 'created_at' %}
+                        <a href="?sort=-created_at">Joined</a>
+                    {% else %}
+                        <a href="?sort=created_at">Joined</a>
+                    {% endif %}
+                </th>
                 <th>Actions</th>
             </tr>
         </thead>
