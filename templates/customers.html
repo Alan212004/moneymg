@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container-fluid p-2">
-    <h2>Customers</h2>
+    <h2>Customers List</h2>
     <a href="{% url 'add_customer' %}" class="btn btn-success mb-4">Add Customer</a>
 
     {% if customers %}
@@ -84,6 +84,8 @@
                     <a href="{% url 'delete_customer' customer.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this customer?');">Delete</a>
                 </td>
             </tr>
+            {% empty %}
+        <h3>No customers found.</h3>
             {% endfor %}
         </tbody>
     </table>

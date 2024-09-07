@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container-fluid p-4">
+<div class="container-fluid p-2">
     <h2>Suppliers List</h2>
+    <a href="{% url 'add_supplier' %}" class="btn btn-success mb-4">Add Supplier</a>
 
 
     {% if suppliers %}
@@ -56,6 +57,7 @@
                 <td>{{ supplier.email }}</td>
                 <td>{{ supplier.balance }}</td>
                 <td>
+                    <a href="{% url 'edit_supplier' supplier.id %}" class="btn btn-sm btn-warning">Edit</a>
                     <a href="{% url 'delete_supplier' supplier.pk %}" class="btn btn-sm btn-danger"
                         onclick="return confirm('Are you sure you want to delete this Supplier?');">Delete</a>
                 </td>

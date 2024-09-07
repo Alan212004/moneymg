@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'core',
+    'user',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,6 +52,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'moneymgmt.urls'
+LOGIN_URL = '/user/login/'
+
 
 TEMPLATES = [
     {
