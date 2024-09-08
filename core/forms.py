@@ -1,5 +1,6 @@
 from django import forms
 from .models import Customer, Supplier, STransaction, PTransaction
+from django.core.exceptions import ValidationError
 
 class STransactionForm(forms.ModelForm):
     class Meta:
@@ -50,3 +51,21 @@ class SupplierForm(forms.ModelForm):
     class Meta:
         model = Supplier
         fields = ['name', 'phone', 'address', 'email']
+    
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if len(str(phone)) < 10 or len(str(phone)) > 15:
+            raise ValidationError('Phone Number Must Be Between 10 and 15 Digits Add The Country Code Is Also Need!')
+        return phone
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email and '@' not in email:
+            raise ValidationError('Invalid email format. Please enter a valid email address.')
+        return email
+    
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if len(name) < 2 or len(name) > 100:
+            raise ValidationError('Name must be between 2 and 100 characters long.')
+        return name

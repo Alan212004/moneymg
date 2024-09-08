@@ -105,7 +105,7 @@ def add_supplier(request):
         form = SupplierForm(request.POST)
         if form.is_valid():
             supplier = form.save(commit=False)
-            Supplier.user = request.user  # Assign the logged-in user
+            supplier.user = request.user  # Corrected: Assign the logged-in user
             supplier.save()
             return redirect('supplier_list')
     else:
@@ -145,31 +145,37 @@ def sales_transactions(request):
 @login_required
 def purchase_transactions(request):
     purchase_transactions = PTransaction.objects.filter(user=request.user)
+    
     if request.method == 'POST':
         form = PTransactionForm(request.POST)
         if form.is_valid():
             transaction = form.save(commit=False)
             supplier = transaction.supplier
-
+            
             # Calculate unpaid amount or excess payment
             if transaction.pay_amount < transaction.total_amount:
-                # If paid amount is less than the total, increase the supplier's balance
+                # Increase the supplier's balance
                 unpaid_amount = transaction.total_amount - transaction.pay_amount
                 supplier.balance += unpaid_amount
             elif transaction.pay_amount > transaction.total_amount:
-                # If paid amount is more than the total, decrease the supplier's balance
+                # Decrease the supplier's balance
                 excess_payment = transaction.pay_amount - transaction.total_amount
                 supplier.balance -= excess_payment
-                supplier.save()
-            # If pay_amount is equal to total_amount, no change to supplier's balance
-
-             
+            
+            # Save the supplier's updated balance
+            supplier.save()
+            
+            # Save the transaction
             transaction.save()
+            
             return redirect('purchase_transactions')
     else:
         form = PTransactionForm(user=request.user)
 
-    return render(request, 'purchase_transactions.html', {'form': form, 'purchase_transactions': purchase_transactions})
+    return render(request, 'purchase_transactions.html', {
+        'form': form,
+        'purchase_transactions': purchase_transactions
+    })
 
 # Edit customer view
 @login_required
@@ -200,7 +206,9 @@ def edit_supplier(request, pk):
     if request.method == 'POST':
         form = SupplierForm(request.POST, instance=supplier)
         if form.is_valid():
-            form.save()
+            supplier = form.save(commit=False)
+            supplier.user = request.user  # Ensure the user remains the same
+            supplier.save()
             return redirect('supplier_list')
     else:
         form = SupplierForm(instance=supplier)

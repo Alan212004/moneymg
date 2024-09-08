@@ -15,31 +15,61 @@
                         <div class="form-group w-100">
                            {{ form.name.label_tag }} <br>
                            {{ form.name|add_class:"form-control form-control-custom" }}
+                           {% if form.name.errors %}
+                               <div class="text-danger">
+                                   {{ form.name.errors }}
+                               </div>
+                           {% endif %}
                         </div>
                         
                         <div class="form-group">
                             {{ form.nick_name.label_tag }} <br>
                             {{ form.nick_name|add_class:"form-control form-control-custom" }}
+                            {% if form.nick_name.errors %}
+                               <div class="text-danger">
+                                   {{ form.nick_name.errors }}
+                               </div>
+                           {% endif %}
                         </div>
                         
                         <div class="form-group">
                             {{ form.phone.label_tag }} <br>
                             {{ form.phone|add_class:"form-control form-control-custom" }}
+                            {% if form.phone.errors %}
+                               <div class="text-danger">
+                                   {{ form.phone.errors }}
+                               </div>
+                           {% endif %}
                         </div>
                         
                         <div class="form-group">
                             {{ form.gender.label_tag }} <br>
                             {{ form.gender|add_class:"form-control form-control-custom" }}
+                            {% if form.gender.errors %}
+                               <div class="text-danger">
+                                   {{ form.gender.errors }}
+                               </div>
+                           {% endif %}
                         </div>
                         
                         <div class="form-group">
                             {{ form.email.label_tag }} <br>
                             {{ form.email|add_class:"form-control form-control-custom" }}
+                            {% if form.email.errors %}
+                               <div class="text-danger">
+                                   {{ form.email.errors }}
+                               </div>
+                           {% endif %}
                         </div>
                         
                         <div class="form-group">
                             {{ form.address.label_tag }} <br>
                             {{ form.address|add_class:"form-control form-control-custom" }}
+                            {% if form.address.errors %}
+                               <div class="text-danger">
+                                   {{ form.address.errors }}
+                               </div>
+                           {% endif %}
                         </div>
 
                         <button type="submit" class="btn btn-primary btn-block mt-3">Add Customer</button>

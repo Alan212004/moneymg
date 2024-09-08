@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
 {% load static %}
 {% block content %}
 <div class="container-fluid">
@@ -67,7 +68,7 @@
                             Daily Debit
                         </div>
                         <div class="card-body">
-                            <h5 class="card-title">₹ {{ daily_debit }}</h5>
+                            <h5 class="card-title">₹ {{ daily_debit }}<br>{{ daily_debit|number_to_words  }}</h5>
                             <p class="card-text">Total debit transactions for today.</p>
                         </div>
                     </div>
@@ -80,7 +81,7 @@
                             Daily Credit
                         </div>
                         <div class="card-body">
-                            <h5 class="card-title">₹ {{ daily_credit }}</h5>
+                            <h5 class="card-title">₹ {{ daily_credit }}<br>{{ daily_credit|number_to_words  }}</h5>
                             <p class="card-text">Total credit transactions for today.</p>
                         </div>
                     </div>
@@ -93,7 +94,7 @@
                             Total Debit
                         </div>
                         <div class="card-body">
-                            <h5 class="card-title">₹ {{ total_debit }}</h5>
+                            <h5 class="card-title">₹ {{ total_debit }}<br>{{ total_debit|number_to_words  }}</h5>
                             <p class="card-text">Total debit transactions overall.</p>
                         </div>
                     </div>
@@ -106,7 +107,7 @@
                             Total Credit
                         </div>
                         <div class="card-body">
-                            <h5 class="card-title">₹ {{ total_credit }}</h5>
+                            <h5 class="card-title">₹ {{ total_credit }}<br>{{ total_credit|number_to_words  }}</h5>
                             <p class="card-text">Total credit transactions overall.</p>
                         </div>
                     </div>
@@ -119,7 +120,7 @@
                             Unpaid Amounts
                         </div>
                         <div class="card-body">
-                            <h5 class="card-title">₹ {{ unpaid_amounts }}</h5>
+                            <h5 class="card-title">₹ {{ unpaid_amounts }}<br>{{ unpaid_amounts|number_to_words  }}</h5>
                             <p class="card-text">Total unpaid amounts in Purchase.</p>
                         </div>
                     </div>
@@ -132,7 +133,7 @@
                             Paid Amounts
                         </div>
                         <div class="card-body">
-                            <h5 class="card-title">₹ {{ paid_amounts }}</h5>
+                            <h5 class="card-title">₹ {{ paid_amounts }}<br>{{ paid_amounts|number_to_words  }}</h5>
                             <p class="card-text">Total paid amounts in Purchase.</p>
                         </div>
                     </div>
