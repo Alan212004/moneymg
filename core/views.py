@@ -5,6 +5,8 @@ from django.db.models import Sum, F, Case, When, Value, FloatField, ExpressionWr
 from django.utils import timezone
 from .models import Customer, Supplier, STransaction, PTransaction
 from .forms import CustomerForm, STransactionForm, PTransactionForm, SupplierForm
+from .models import BalanceHistory
+from django.db.models import Q
 
 @login_required
 def dashboard_view(request):
@@ -60,18 +62,36 @@ def transaction_success(request):
 # Customer list view
 @login_required
 def customer_list(request):
+    query = request.GET.get('q')  # Get the search query from the request
     sort = request.GET.get('sort', 'name')  # Default sort by 'name'
+    
+    # Start with customers filtered by the logged-in user
+    customers = Customer.objects.filter(user=request.user)
+    
+    # If a search query is provided, filter customers based on the search input
+    if query:
+        customers = customers.filter(
+            Q(name__icontains=query) |  # Case-insensitive search on name
+            Q(nick_name__icontains=query) |
+            Q(phone__icontains=query) |
+            Q(email__icontains=query) |
+            Q(address__icontains=query)
+        )
+
+    # Sort the customers based on the chosen sorting parameter
     if sort.startswith('-'):
         sort_field = sort[1:]
-        customers = Customer.objects.filter(user=request.user).order_by('-' + sort_field)
+        customers = customers.order_by('-' + sort_field)
     else:
-        customers = Customer.objects.filter(user=request.user).order_by(sort)
+        customers = customers.order_by(sort)
     
-    return render(request, 'customers.html', {'customers': customers, 'sort': sort})
+    # Render the template with the filtered and sorted customers
+    return render(request, 'customers.html', {'customers': customers, 'sort': sort, 'query': query})
 
 # Supplier list view
 @login_required
 def supplier_list(request):
+    query = request.GET.get('q', '')  # Get the search query
     sort = request.GET.get('sort', 'name')  # Default sort by 'name'
     
     # Check if the sort key starts with a minus for descending order
@@ -80,8 +100,17 @@ def supplier_list(request):
         suppliers = Supplier.objects.filter(user=request.user).order_by('-' + sort_field)
     else:
         suppliers = Supplier.objects.filter(user=request.user).order_by(sort)
+
+     # Apply the search filter if a query is provided
+    if query:
+        suppliers = suppliers.filter(
+            Q(name__icontains=query) | 
+            Q(phone__icontains=query) |
+            Q(address__icontains=query) |
+            Q(email__icontains=query)
+        )    
     
-    return render(request, 'suppliers.html', {'suppliers': suppliers, 'sort': sort})
+    return render(request, 'suppliers.html', {'suppliers': suppliers, 'sort': sort, 'query': query})
 
 # Add customer view
 @login_required
@@ -125,16 +154,36 @@ def sales_transactions(request):
             transaction.user = request.user
             customer = transaction.customer
 
-            # Update customer's balance if pay amount is less than total
-            if transaction.pay_amount < transaction.total_amount:
-                balance_to_update = transaction.total_amount - transaction.pay_amount
-                customer.balance += balance_to_update
-                customer.save()
-            elif transaction.pay_amount > transaction.total_amount:
-                balance_to_update = transaction.pay_amount - transaction.total_amount
-                customer.balance -= balance_to_update
-                customer.save()    
+            # Apply discount to the total amount
+            discounted_amount = transaction.total_amount - transaction.discount
 
+             # Update customer's balance if pay amount is less than discounted total
+            if transaction.pay_amount < discounted_amount:
+                balance_to_update = discounted_amount - transaction.pay_amount
+                customer.balance += balance_to_update
+                description = 'Balance updated due to partial payment in sales transaction'
+
+            elif transaction.pay_amount > discounted_amount:
+                balance_to_update = transaction.pay_amount - discounted_amount
+                customer.balance -= balance_to_update
+                description = 'Balance adjusted due to overpayment in sales transaction'
+            else:
+                balance_to_update = 0
+                description = 'Exact payment for sales transaction'
+
+            # Save the customer's updated balance
+            customer.save()
+
+            # Create a BalanceHistory entry
+            BalanceHistory.objects.create(
+                customer=customer,
+                amount=transaction.total_amount,
+                paid=transaction.pay_amount,
+                balance=customer.balance,
+                description=description
+            )
+
+            # Save the transaction
             transaction.save()
             return redirect('sales_transactions')
     else:
@@ -223,3 +272,29 @@ def delete_supplier(request, pk):
         return redirect('supplier_list')
     return render(request, 'confirm_delete.html', {'object': supplier})
 
+
+@login_required
+def customer_balance_history(request, customer_id):
+    customer = get_object_or_404(Customer, id=customer_id, user=request.user)
+    
+    # Get the search query from the request
+    query = request.GET.get('q', '')
+
+    # Filter the balance history based on the customer and the search query
+    history_entries = BalanceHistory.objects.filter(customer=customer)
+    
+    if query:
+        history_entries = history_entries.filter(
+            Q(date__icontains=query) |
+            Q(amount__icontains=query) |
+            Q(paid__icontains=query) |
+            Q(balance__icontains=query) |
+            Q(description__icontains=query)
+        )
+
+    context = {
+        'customer': customer,
+        'history_entries': history_entries,
+        'query': query,  # Pass the query back to the template
+    }
+    return render(request, 'customer_balance_history.html', context)

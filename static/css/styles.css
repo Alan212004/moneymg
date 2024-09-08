@@ -17,3 +17,11 @@
 .btn-primary:hover {
     background-color: #0056b3;
 }
+
+.scrollable-container {
+    max-height: 1000px; /* Adjust the height as needed */
+    overflow-y: auto; /* Enables vertical scrolling */
+    overflow-x: hidden; /* Hides horizontal scrolling if not needed */
+    border: 1px solid #ddd; /* Optional: add a border around the container */
+    padding: 10px; /* Optional: add padding inside the container */
+}

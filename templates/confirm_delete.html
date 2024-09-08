@@ -3,11 +3,11 @@
 {% block content %}
 <div class="container">
     <h2>Confirm Delete</h2>
-    <p>Are you sure you want to delete {{ object.name }}?</p>
+    <p>Are You Sure You Want To Delete {{ object.name }}? It Delete All Other Related Datas Of {{ object.name }}. Please Recheck And Confirm !</p>
     <form method="post">
         {% csrf_token %}
         <button type="submit" class="btn btn-danger">Confirm</button>
-        <a href="{% url 'customer_list' %}" class="btn btn-secondary">Cancel</a>
+        <button type="button" class="btn btn-secondary" onclick="window.history.back();">Cancel</button>
     </form>
 </div>
 {% endblock %}

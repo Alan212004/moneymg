@@ -3,6 +3,23 @@
 {% block content %}
 <div class="container-fluid p-2">
     <h2>Customers List</h2>
+     <!-- Search Form -->
+     <form method="GET" action="{% url 'customer_list' %}" class="form-inline mb-4">
+        <input class="form-control mr-sm-2" type="text" name="q" id="search-input" 
+               placeholder="Search for customer..." value="{{ query|default_if_none:'' }}" aria-label="Search">
+    
+        <!-- Search Button -->
+        <button class="btn btn-outline-success my-2 my-sm-0 mr-2" type="submit">Search</button>
+    
+        <!-- Clear Search Button (X Mark) -->
+        {% if query %}
+        <button type="button" class="btn btn-outline-danger my-2 my-sm-0" id="clear-search" aria-label="Clear search">
+            Clear
+        </button>
+        {% endif %}
+    </form>
+    
+
     <a href="{% url 'add_customer' %}" class="btn btn-success mb-4">Add Customer</a>
 
     {% if customers %}
@@ -82,6 +99,7 @@
                 <td>
                     <a href="{% url 'edit_customer' customer.id %}" class="btn btn-sm btn-warning">Edit</a>
                     <a href="{% url 'delete_customer' customer.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this customer?');">Delete</a>
+                    <a href="{% url 'customer_balance_history' customer.id %}" class="btn btn-sm btn-info">View Balance History</a>                
                 </td>
             </tr>
             {% empty %}
@@ -93,4 +111,13 @@
     <p>No customers found. <a href="{% url 'add_customer' %}">Add a customer</a>.</p>
     {% endif %}
 </div>
+
+<!-- Script to Handle Search and Clear -->
+<script>
+    // Handle clear search button
+    document.getElementById('clear-search')?.addEventListener('click', function() {
+        document.getElementById('search-input').value = '';
+        document.querySelector('form').submit();
+    });
+</script>
 {% endblock %}

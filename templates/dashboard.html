@@ -5,57 +5,61 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar for Balances -->
-        <aside class="col-md-3 bg-white sidebar">
-            <!-- Customer Balances -->
-            <div class="mt-4 ">
-                <h3>Customer Balances</h3>
-                <table class="table table-striped ">
-                    <thead class="bg-secondary text-white">
-                        <tr class="border-secondary">
-                            <th class="border-secondary">Name</th>
-                            <th class="border-secondary">Balance</th>
-                        </tr>
-                    </thead>
-                    <tbody class="border-secondary">
-                        {% for customer in customers %}
-                        <tr class="border-secondary">
-                            <td class="border-secondary">{{ customer.name }}</td>
-                            <td class="border-secondary">₹ {{ customer.balance }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="2">No customers available.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+<aside class="col-md-3 bg-white sidebar">
+    <!-- Scrollable Container -->
+    <div class="scrollable-container">
+        <!-- Customer Balances -->
+        <div class="mt-4">
+            <h3>Customer Balances</h3>
+            <table class="table table-striped table-hover">
+                <thead class="bg-secondary text-white">
+                    <tr class="border-secondary">
+                        <th class="border-secondary">Name</th>
+                        <th class="border-secondary">Balance</th>
+                    </tr>
+                </thead>
+                <tbody class="border-secondary">
+                    {% for customer in customers %}
+                    <tr class="border-secondary">
+                        <td class="border-secondary">{{ customer.name }}</td>
+                        <td class="border-secondary">₹ {{ customer.balance }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2">No customers available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-            <!-- Supplier Balances -->
-            <div class="mt-4">
-                <h3>Supplier Balances</h3>
-                <table class="table table-striped">
-                    <thead class="bg-secondary text-white">
-                        <tr>
-                            <th>Name</th>
-                            <th>Balance</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for supplier in suppliers %}
-                        <tr>
-                            <td class="border-success">{{ supplier.name }}</td>
-                            <td class="border-success">₹ {{ supplier.balance }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="2">No suppliers available.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </aside>
+        <!-- Supplier Balances -->
+        <div class="mt-4">
+            <h3>Supplier Balances</h3>
+            <table class="table table-striped table-hover">
+                <thead class="bg-secondary text-white">
+                    <tr>
+                        <th>Name</th>
+                        <th>Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for supplier in suppliers %}
+                    <tr>
+                        <td class="border-success">{{ supplier.name }}</td>
+                        <td class="border-success">₹ {{ supplier.balance }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2">No suppliers available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</aside>
+
 
         <!-- Main Content Area -->
         <main class="col-md-9 ml-sm-auto col-lg-9 px-4">
@@ -139,59 +143,120 @@
                     </div>
                 </div>
             </div>
+            
+            <style>
+                /* Ensure the container takes the full height of the viewport */
+                .scrollable-container {
+                    height: 100vh; /* Full viewport height */
+                    display: flex;
+                    flex-direction: column;
+                }
+            
+                .table-section {
+                    flex: 1; /* Make sections take up equal height */
+                    overflow-y: auto; /* Enable vertical scrolling if content exceeds the height */
+                }
+            
+                .table-section h3 {
+                    margin-top: 0;
+                    padding: 10px;
+                    background-color: #17a2b8; /* Header background color */
+                    color: #fff; /* Header text color */
+                }
+            
+                .table-section table {
+                    margin-bottom: 0; /* Remove bottom margin */
+                }
+            </style>
+            
+            <div class="scrollable-container">
+                <div class="table-section">
+                    <h3>Recent Sales Transactions</h3>
+                    <table class="table table-bordered table-hover table-dark table-striped" id="table-sales">
+                        <thead class="bg-info text-white">
+                            <tr>
+                                <th class="border-info">Customer</th>
+                                <th class="border-info">Total Amount</th>
+                                <th class="border-info">Discount</th> <!-- New column for discount -->
+                                <th class="border-info">Pay Amount</th>
+                                <th class="border-info">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in stransactions %}
+                            <tr>
+                                <td class="border-info">{{ transaction.customer }}</td>
+                                <td class="border-info">₹ {{ transaction.total_amount }}</td>
+                                <td class="border-info">₹ {{ transaction.discount }}</td> <!-- Display discount -->
+                                <td class="border-info">₹ {{ transaction.pay_amount }}</td>
+                                <td class="border-info">{{ transaction.date }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4">No recent sales transactions.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            
+                <div class="table-section">
+                    <h3>Recent Purchase Transactions</h3>
+                    <table class="table table-bordered table-dark table-hover table-striped" id="table-purchases">
+                        <thead class="bg-info text-white">
+                            <tr>
+                                <th class="border-info">Supplier</th>
+                                <th class="border-info">Total Amount</th>
+                                <th class="border-info">Pay Amount</th>
+                                <th class="border-info">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in ptransactions %}
+                            <tr>
+                                <td class="border-info">{{ transaction.supplier }}</td>
+                                <td class="border-info">₹ {{ transaction.total_amount }}</td>
+                                <td class="border-info">₹ {{ transaction.pay_amount }}</td>
+                                <td class="border-info">{{ transaction.date }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4">No recent purchase transactions.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            
 
-            <h3>Recent Sales Transactions</h3>
-            <table class="table table-bordered">
-                <thead class="bg-info text-white">
-                    <tr >
-                        <th class="border-info">Customer</th>
-                        <th class="border-info">Total Amount</th>
-                        <th class="border-info">Pay Amount</th>
-                        <th class="border-info">Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for transaction in stransactions %}
-                    <tr>
-                        <td class="border-info">{{ transaction.customer }}</td>
-                        <td class="border-info">₹ {{ transaction.total_amount }}</td>
-                        <td class="border-info">₹ {{ transaction.pay_amount }}</td>
-                        <td class="border-info">{{ transaction.date }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4">No recent sales transactions.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-            <h3>Recent Purchase Transactions</h3>
-            <table class="table table-bordered">
-                <thead class="bg-info text-white">
-                    <tr>
-                        <th class="border-info">Supplier</th>
-                        <th class="border-info">Total Amount</th>
-                        <th class="border-info">Pay Amount</th>
-                        <th class="border-info">Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for transaction in ptransactions %}
-                    <tr>
-                        <td class="border-info">{{ transaction.supplier }}</td>
-                        <td class="border-info">₹ {{ transaction.total_amount }}</td>
-                        <td class="border-info">₹ {{ transaction.pay_amount }}</td>
-                        <td class="border-info">{{ transaction.date }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4">No recent purchase transactions.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+           
         </main>
     </div>
 </div>
 {% endblock %}
+<style>
+    /* Ensure the container takes the full height of the viewport */
+    .scrollable-container {
+        height: 300vh; /* Full viewport height */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .table-section {
+        flex: 1; /* Make sections take up equal height */
+        overflow-y: auto; /* Enable vertical scrolling if content exceeds the height */
+    }
+
+    .table-section h3 {
+        margin-top: 0;
+        padding: 10px;
+        background-color: #ffffff; /* Header background color */
+        color: #00e1ff; /* Header text color */
+    }
+
+    .table-section table {
+        margin-bottom: 0; /* Remove bottom margin */
+    }
+</style>

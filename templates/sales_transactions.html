@@ -34,6 +34,16 @@
                                 </div>
                             {% endif %}
                         </div>
+
+                        <div class="form-group"></div>
+                            {{ form.discount.label_tag }}
+                            {{ form.discount|add_class:"form-control form-control-custom" }}
+                            {% if form.discount.errors %}
+                                <div class="text-danger">
+                                    {{ form.discount.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
                         
                         <div class="form-group">
                             {{ form.pay_amount.label_tag }}

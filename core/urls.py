@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import customer_balance_history
 
 urlpatterns = [
     path('', views.dashboard_view, name='dashboard'),
@@ -16,4 +17,6 @@ urlpatterns = [
     path('suppliers/', views.supplier_list, name='supplier_list'),
     path('suppliers/edit/<int:pk>/', views.edit_supplier, name='edit_supplier'),  # Edit supplier URL
     path('suppliers/delete/<int:pk>/', views.delete_supplier, name='delete_supplier'),  # Delete supplier URL
+    path('customer/<int:customer_id>/balance-history/', customer_balance_history, name='customer_balance_history'),
+
 ]

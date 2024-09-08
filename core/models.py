@@ -3,6 +3,8 @@ from phonenumber_field.modelfields import PhoneNumberField
 from django.core.validators import MinLengthValidator
 from django.utils import timezone
 from django.contrib.auth.models import User
+from decimal import Decimal
+
 
 class Customer(models.Model):
     MALE = 'M'
@@ -22,13 +24,32 @@ class Customer(models.Model):
     gender = models.CharField(max_length=6, null=True, choices=GENDER)
     email = models.EmailField(blank=True, null=True)
     address = models.TextField(max_length=100, blank=True, null=True)
-    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    balance = models.DecimalField(max_digits=50, decimal_places=2, default=0)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         user_info = self.user.username if self.user else 'Unknown User'
         return f"Customer -> {self.name}"
+    
+class BalanceHistory(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    balance = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateTimeField(auto_now_add=True)
+    description = models.TextField(blank=True, null=True)
 
+    class Meta:
+        ordering = ['-date']
+
+def create_balance_history(customer, amount, paid, balance, description):
+    BalanceHistory.objects.create(
+        customer=customer,
+        amount=amount,
+        paid=paid,
+        balance=balance,
+        description=description
+    )
 
 class Supplier(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -36,7 +57,7 @@ class Supplier(models.Model):
     phone = PhoneNumberField(max_length=15, null=True, blank=True,region="IN", default="+91 ", validators=[MinLengthValidator(10)])
     address = models.TextField(max_length=100, blank=True, null=True)
     email = models.EmailField(blank=True, null=True) 
-    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    balance = models.DecimalField(max_digits=50, decimal_places=2, default=0)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
@@ -52,6 +73,7 @@ class STransaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # New discount field
     pay_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     payment_type = models.CharField(max_length=5, choices=PAYMENT_TYPE_CHOICES, blank=True)
     date = models.DateField(default=timezone.now)

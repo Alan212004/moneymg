@@ -1,11 +1,17 @@
 from django import forms
 from .models import Customer, Supplier, STransaction, PTransaction
 from django.core.exceptions import ValidationError
+from .models import BalanceHistory
 
+class BalanceHistoryForm(forms.ModelForm):
+    class Meta:
+        model = BalanceHistory
+        fields = ['amount', 'paid', 'balance', 'description']
+        
 class STransactionForm(forms.ModelForm):
     class Meta:
         model = STransaction
-        fields = ['customer', 'total_amount', 'pay_amount', 'payment_type', 'description']
+        fields = ['customer', 'total_amount', 'pay_amount', 'discount', 'payment_type', 'description']
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)  # Expect the user to be passed when initializing the form

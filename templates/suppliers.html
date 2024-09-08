@@ -3,6 +3,20 @@
 {% block content %}
 <div class="container-fluid p-2">
     <h2>Suppliers List</h2>
+     <!-- Search Bar for Suppliers -->
+     <form method="GET" action="{% url 'supplier_list' %}" class="form-inline mb-4">
+        <input class="form-control mr-sm-2" type="text" name="q" id="search-input" placeholder="Search for supplier..." value="{{ query }}" aria-label="Search">
+        
+        <!-- Search Button -->
+        <button class="btn btn-outline-success my-2 my-sm-0 mr-2" type="submit">Search</button>
+
+        <!-- Clear Search Button (X Mark) -->
+        {% if query %}
+        <button type="button" class="btn btn-outline-danger my-2 my-sm-0" id="clear-search" aria-label="Clear search">
+            Clear
+        </button>
+        {% endif %}
+    </form>
     <a href="{% url 'add_supplier' %}" class="btn btn-success mb-4">Add Supplier</a>
 
 
@@ -70,4 +84,14 @@
     {% endif %}
 
 </div>
+
+<!-- Script to Clear Search -->
+<!-- Script to Handle Search and Clear -->
+<script>
+    // Handle clear search button
+    document.getElementById('clear-search')?.addEventListener('click', function() {
+        document.getElementById('search-input').value = '';
+        document.querySelector('form').submit();
+    });
+</script>
 {% endblock %}
