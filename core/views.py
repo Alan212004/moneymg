@@ -10,33 +10,43 @@ from django.db.models import Q
 
 @login_required
 def dashboard_view(request):
-    # Fetch all customers and suppliers
+    # Fetch all customers and suppliers for the logged-in user
     customers = Customer.objects.filter(user=request.user)
     suppliers = Supplier.objects.filter(user=request.user)
 
     # Calculate today's date
     today = timezone.now().date()
 
-    # Calculate daily debit and credit using STransaction (Sales Transactions only)
-    daily_credit = STransaction.objects.filter(date=today).aggregate(total=Sum('pay_amount'))['total'] or 0
-    daily_debit = (STransaction.objects.filter(date=today).aggregate(total=Sum('total_amount'))['total'] or 0) - daily_credit
+    # Calculate daily debit and credit for the logged-in user's sales transactions
+    daily_sales = STransaction.objects.filter(user=request.user, date=today)
+    daily_total_amount = daily_sales.aggregate(total=Sum('total_amount'))['total'] or 0
+    daily_discount = daily_sales.aggregate(total=Sum('discount'))['total'] or 0
+    daily_credit = daily_sales.aggregate(total=Sum('pay_amount'))['total'] or 0
 
-    # Calculate total debit and credit using STransaction (Sales Transactions only)
-    total_credit = STransaction.objects.aggregate(total=Sum('pay_amount'))['total'] or 0
-    total_debit = (STransaction.objects.aggregate(total=Sum('total_amount'))['total'] or 0) - total_credit
+    # Subtract discount and payments to calculate daily debit
+    daily_debit = (daily_total_amount - daily_discount) - daily_credit
 
-      # Calculate total amount for purchase transactions
-    total_purchase_amount = PTransaction.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+    # Calculate total debit and credit for the logged-in user's sales transactions
+    total_sales = STransaction.objects.filter(user=request.user)
+    total_amount = total_sales.aggregate(total=Sum('total_amount'))['total'] or 0
+    total_discount = total_sales.aggregate(total=Sum('discount'))['total'] or 0
+    total_credit = total_sales.aggregate(total=Sum('pay_amount'))['total'] or 0
+
+    # Subtract discount and payments to calculate total debit
+    total_debit = (total_amount - total_discount) - total_credit
+
+    # Calculate total amount for purchase transactions for the logged-in user
+    total_purchase_amount = PTransaction.objects.filter(user=request.user).aggregate(total=Sum('total_amount'))['total'] or 0
 
     # Calculate paid amounts (total of pay_amounts in purchase transactions)
-    paid_amounts = PTransaction.objects.aggregate(total_paid=Sum('pay_amount'))['total_paid'] or 0
+    paid_amounts = PTransaction.objects.filter(user=request.user).aggregate(total_paid=Sum('pay_amount'))['total_paid'] or 0
 
     # Calculate unpaid amounts for suppliers (purchase transactions)
-    unpaid_amounts = total_purchase_amount - paid_amounts or  0
+    unpaid_amounts = total_purchase_amount - paid_amounts or 0
 
-    # Fetch recent sales transactions from STransaction and purchase transactions from PTransaction
-    stransactions = STransaction.objects.order_by('-date')[:5]
-    ptransactions = PTransaction.objects.order_by('-date')[:5]
+    # Fetch recent sales and purchase transactions for the logged-in user
+    stransactions = STransaction.objects.filter(user=request.user).order_by('-date')[:5]
+    ptransactions = PTransaction.objects.filter(user=request.user).order_by('-date')[:5]
 
     context = {
         'customers': customers,
@@ -53,6 +63,8 @@ def dashboard_view(request):
     }
 
     return render(request, 'dashboard.html', context)
+
+
 
 # Transaction success view
 @login_required
@@ -155,21 +167,25 @@ def sales_transactions(request):
             customer = transaction.customer
 
             # Apply discount to the total amount
-            discounted_amount = transaction.total_amount - transaction.discount
+            discounted_amount = max(0, transaction.total_amount - transaction.discount)
 
-             # Update customer's balance if pay amount is less than discounted total
+            # Calculate balance to be updated based on pay amount
             if transaction.pay_amount < discounted_amount:
+                # Partial payment - customer owes the remaining balance
                 balance_to_update = discounted_amount - transaction.pay_amount
                 customer.balance += balance_to_update
-                description = 'Balance updated due to partial payment in sales transaction'
+                description = f'Balance increased by {balance_to_update} due to partial payment'
 
             elif transaction.pay_amount > discounted_amount:
+                # Overpayment - customer has credit
                 balance_to_update = transaction.pay_amount - discounted_amount
                 customer.balance -= balance_to_update
-                description = 'Balance adjusted due to overpayment in sales transaction'
+                description = f'Balance decreased by {balance_to_update} due to overpayment'
+
             else:
+                # Exact payment
                 balance_to_update = 0
-                description = 'Exact payment for sales transaction'
+                description = 'Exact payment made, no balance update'
 
             # Save the customer's updated balance
             customer.save()
