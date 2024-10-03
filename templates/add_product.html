@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10 col-sm-12">
+            <div class="card shadow-sm shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="text-center mb-0">Add Product</h2>
+                </div>
+                <div class="card-body p-2 m-1">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Product Image Preview -->
+                        <div class="form-group text-center">
+                            <label for="image">Product Image</label>
+                            <div class="border rounded-circle mx-auto mb-3" style="width: 150px; height: 150px;">
+                                <img id="imagePreview" src="{% static 'images/product_images/default_product.png' %}" 
+                                     alt="Product Image" 
+                                     class="rounded-circle" 
+                                     style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            <!-- Input for image file upload -->
+                            <input type="file" name="image" id="imageUpload" class="form-control mt-2 {% if form.image.errors %}is-invalid{% endif %}" accept="image/*" onchange="previewImage(event)">
+                            {% if form.image.errors %}
+                                <div class="invalid-feedback">{{ form.image.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Form Fields -->
+                        {% for field in form %}
+                        <div class="form-group">
+                            {{ field.label_tag }}
+                            {{ field }} <!-- No need to apply add_class to errors -->
+                            {% if field.errors %}
+                                <div class="text-danger mt-1">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <button type="submit" class="btn btn-primary btn-block mt-3">Save Product</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Preview Script -->
+<script>
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;  // Update the preview with the selected file
+            };
+            reader.readAsDataURL(file);  // Read the file as a data URL
+        }
+    }
+</script>
+{% endblock %}

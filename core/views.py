@@ -1,12 +1,18 @@
-
+from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Sum, F, Case, When, Value, FloatField, ExpressionWrapper
 from django.utils import timezone
+
+from .forms import ProductForm
 from .models import Customer, Supplier, STransaction, PTransaction
 from .forms import CustomerForm, STransactionForm, PTransactionForm, SupplierForm
 from .models import BalanceHistory
 from django.db.models import Q
+
+from django.core.paginator import Paginator
+from .models import Product
+
 
 @login_required
 def dashboard_view(request):
@@ -124,6 +130,51 @@ def supplier_list(request):
     
     return render(request, 'suppliers.html', {'suppliers': suppliers, 'sort': sort, 'query': query})
 
+# Product list view
+@login_required
+def product_list(request):
+    # Get the search query and sorting parameter
+    query = request.GET.get('q', '')
+    sort = request.GET.get('sort', 'name')  # Sort by name by default
+    ordering = sort if sort in ['name', 'category', 'mrp'] else 'name'  # Ensure valid sort
+
+    # Fetch all products and filter based on the search query
+    if sort.startswith('-'):
+        sort_field = sort[1:]
+       # products = Product.objects.filter(user=request.user).order_by('-' + sort_field)
+        products = Product.objects.filter(user=request.user).order_by(sort)
+    else:
+        #products = Product.objects.filter(user=request.user).order_by(sort)
+        products = Product.objects.filter(user=request.user).order_by(sort)
+
+    if query:
+        products = products.filter(
+            Q(name__icontains=query) | 
+            Q(print_name__icontains=query) |
+            Q(category__icontains=query) |
+            Q(hsn_code__icontains=query)
+        )
+
+    # Order products based on the selected sorting option
+    products = products.order_by(ordering)
+
+    product_count = products.count()
+
+
+    # Paginate the products (10 per page)
+    paginator = Paginator(products, 10)  
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'product_list.html', {
+    'products': page_obj,  # Use 'products' instead of 'page_obj'
+    'query': query,
+    'sort': sort,
+    'product_count': product_count,
+})
+
+
+
 # Add customer view
 @login_required
 def add_customer(request):
@@ -153,6 +204,27 @@ def add_supplier(request):
         form = SupplierForm()
 
     return render(request, 'add_supplier.html', {'form': form})
+
+# Add Products
+@login_required
+def add_product(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save(commit=False)
+            product.user = request.user
+            
+            # Set default image if none provided
+            if not product.image: 
+                product.image = 'images/product_images/default_product.png'  # Set default image path
+
+            product.save()
+            return redirect('product_list')  # Redirect to product list after saving
+    else:
+        form = ProductForm()
+
+    return render(request, 'add_product.html', {'form': form})
+
 
 # Sales transactions view
 @login_required
@@ -264,6 +336,16 @@ def delete_customer(request, pk):
         return redirect('customer_list')
     return render(request, 'confirm_delete.html', {'object': customer})
 
+# Delete Product View
+@login_required
+def delete_product(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+     product.delete()
+     return redirect('product_list')
+    return render(request, 'confirm_delete.html', {'object': product})
+
+
 # Edit supplier view
 @login_required
 def edit_supplier(request, pk):
@@ -278,6 +360,23 @@ def edit_supplier(request, pk):
     else:
         form = SupplierForm(instance=supplier)
     return render(request, 'edit_supplier.html', {'form': form})
+
+# Edit product view
+@login_required
+def edit_product(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            product = form.save(commit=False)
+            product.user = request.user  # Ensure the user remains the same
+            product.save()
+            return redirect('product_list')
+    else:
+        form = ProductForm(instance=product)
+
+    return render(request, 'edit_product.html', {'form': form})
+
 
 # Delete supplier view
 @login_required

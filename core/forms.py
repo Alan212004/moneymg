@@ -2,6 +2,7 @@ from django import forms
 from .models import Customer, Supplier, STransaction, PTransaction
 from django.core.exceptions import ValidationError
 from .models import BalanceHistory
+from .models import Product
 
 class BalanceHistoryForm(forms.ModelForm):
     class Meta:
@@ -52,6 +53,38 @@ class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
         fields = ['name', 'nick_name', 'phone', 'gender', 'email', 'address']
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = [
+            'image', 'name', 'print_name', 'hsn_code', 'category','mrp',
+            'purchase_price', 'purchase_quantity', 'purchase_type', 'sales_price',
+            'sales_quantity', 'sales_type', 'discount', 'tax',
+            'expiry_date', 'description', 'status',
+        ] # Or specify fields explicitly if needed
+        widgets = {
+            'expire_date': forms.DateInput(attrs={'type': 'date'}),
+            'purchase_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        mrp = cleaned_data.get('mrp')
+        sales_price = cleaned_data.get('sales_price')
+
+        if sales_price and mrp and sales_price > mrp:
+            self.add_error('sales_price', 'Sales price cannot exceed MRP.')
+
+        return cleaned_data
+
+    def __init__(self, *args, **kwargs):
+        super(ProductForm, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})
+
+
+
 
 class SupplierForm(forms.ModelForm):
     class Meta:
