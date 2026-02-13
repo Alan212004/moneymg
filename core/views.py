@@ -1,17 +1,23 @@
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
+from decimal import Decimal
 from django.db.models import Sum, F, Case, When, Value, FloatField, ExpressionWrapper
 from django.utils import timezone
 
 from .forms import ProductForm
-from .models import Customer, Supplier, STransaction, PTransaction
-from .forms import CustomerForm, STransactionForm, PTransactionForm, SupplierForm
-from .models import BalanceHistory
+from .models import (
+    Customer, Supplier, STransaction, PTransaction, Product, BalanceHistory,
+    ExpenseCategory, MoneyTransaction, Budget, SplitGroup, GroupMember, GroupExpense, GroupExpenseShare
+)
+from .forms import (
+    CustomerForm, STransactionForm, PTransactionForm, SupplierForm,
+    ExpenseCategoryForm, MoneyTransactionForm, BudgetForm,
+    SplitGroupForm, GroupMemberForm, GroupExpenseForm
+)
 from django.db.models import Q
 
 from django.core.paginator import Paginator
-from .models import Product
 
 
 @login_required
@@ -413,3 +419,190 @@ def customer_balance_history(request, customer_id):
         'query': query,  # Pass the query back to the template
     }
     return render(request, 'customer_balance_history.html', context)
+
+@login_required
+def money_tracker(request):
+    categories = ExpenseCategory.objects.filter(user=request.user)
+    transactions = MoneyTransaction.objects.filter(user=request.user)
+
+    if request.method == 'POST':
+        if 'create_category' in request.POST:
+            category_form = ExpenseCategoryForm(request.POST)
+            transaction_form = MoneyTransactionForm(user=request.user)
+            budget_form = BudgetForm(user=request.user)
+            if category_form.is_valid():
+                category = category_form.save(commit=False)
+                category.user = request.user
+                category.save()
+                return redirect('money_tracker')
+        elif 'create_budget' in request.POST:
+            category_form = ExpenseCategoryForm()
+            transaction_form = MoneyTransactionForm(user=request.user)
+            budget_form = BudgetForm(request.POST, user=request.user)
+            if budget_form.is_valid():
+                budget = budget_form.save(commit=False)
+                budget.user = request.user
+                month = budget.month
+                budget.month = month.replace(day=1)
+                budget.save()
+                return redirect('money_tracker')
+        else:
+            category_form = ExpenseCategoryForm()
+            budget_form = BudgetForm(user=request.user)
+            transaction_form = MoneyTransactionForm(request.POST, user=request.user)
+            if transaction_form.is_valid():
+                transaction = transaction_form.save(commit=False)
+                transaction.user = request.user
+                transaction.save()
+                return redirect('money_tracker')
+    else:
+        category_form = ExpenseCategoryForm()
+        transaction_form = MoneyTransactionForm(user=request.user)
+        budget_form = BudgetForm(user=request.user)
+
+    total_income = transactions.filter(transaction_type='income').aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    total_expense = transactions.filter(transaction_type='expense').aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+    monthly_budgets = Budget.objects.filter(user=request.user).order_by('-month')[:12]
+    budget_rows = []
+    for budget in monthly_budgets:
+        spent = MoneyTransaction.objects.filter(
+            user=request.user,
+            transaction_type='expense',
+            category=budget.category,
+            date__year=budget.month.year,
+            date__month=budget.month.month,
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        usage = 0 if budget.limit_amount == 0 else min(100, round((spent / budget.limit_amount) * 100, 2))
+        budget_rows.append({'budget': budget, 'spent': spent, 'usage': usage})
+
+    return render(request, 'money_tracker.html', {
+        'categories': categories,
+        'transactions': transactions[:20],
+        'category_form': category_form,
+        'transaction_form': transaction_form,
+        'budget_form': budget_form,
+        'total_income': total_income,
+        'total_expense': total_expense,
+        'net_savings': total_income - total_expense,
+        'budget_rows': budget_rows,
+    })
+
+
+def _recalculate_group_shares(expense, custom_amounts=None, percentages=None):
+    GroupExpenseShare.objects.filter(expense=expense).delete()
+    members = list(expense.group.members.all())
+    if not members:
+        return
+
+    if expense.split_method == 'equal':
+        per_head = (expense.amount / Decimal(len(members))).quantize(Decimal('0.01'))
+        for idx, member in enumerate(members):
+            owed = per_head
+            if idx == len(members) - 1:
+                current_total = per_head * Decimal(len(members) - 1)
+                owed = (expense.amount - current_total).quantize(Decimal('0.01'))
+            GroupExpenseShare.objects.create(expense=expense, member=member, amount_owed=owed)
+
+    elif expense.split_method == 'custom' and custom_amounts:
+        for member in members:
+            amt = Decimal(custom_amounts.get(str(member.id), '0') or '0').quantize(Decimal('0.01'))
+            GroupExpenseShare.objects.create(expense=expense, member=member, amount_owed=amt)
+
+    elif expense.split_method == 'percentage' and percentages:
+        for member in members:
+            pct = Decimal(percentages.get(str(member.id), '0') or '0')
+            owed = ((expense.amount * pct) / Decimal('100')).quantize(Decimal('0.01'))
+            GroupExpenseShare.objects.create(expense=expense, member=member, amount_owed=owed)
+
+
+@login_required
+def split_groups(request):
+    groups = SplitGroup.objects.filter(user=request.user)
+    if request.method == 'POST':
+        form = SplitGroupForm(request.POST)
+        if form.is_valid():
+            group = form.save(commit=False)
+            group.user = request.user
+            group.save()
+            return redirect('split_groups')
+    else:
+        form = SplitGroupForm()
+
+    return render(request, 'split_groups.html', {'groups': groups, 'form': form})
+
+
+@login_required
+def split_group_detail(request, group_id):
+    group = get_object_or_404(SplitGroup, id=group_id, user=request.user)
+    members = group.members.all()
+    expenses = group.expenses.select_related('paid_by').all()
+
+    member_form = GroupMemberForm()
+    expense_form = GroupExpenseForm(group=group)
+
+    if request.method == 'POST':
+        if 'add_member' in request.POST:
+            member_form = GroupMemberForm(request.POST)
+            if member_form.is_valid():
+                member = member_form.save(commit=False)
+                member.group = group
+                member.save()
+                return redirect('split_group_detail', group_id=group.id)
+        elif 'add_expense' in request.POST:
+            expense_form = GroupExpenseForm(request.POST, group=group)
+            if expense_form.is_valid():
+                expense = expense_form.save(commit=False)
+                expense.group = group
+                expense.save()
+                custom_amounts = {str(m.id): request.POST.get(f'custom_{m.id}', '0') for m in members}
+                percentages = {str(m.id): request.POST.get(f'percent_{m.id}', '0') for m in members}
+                _recalculate_group_shares(expense, custom_amounts=custom_amounts, percentages=percentages)
+                return redirect('split_group_detail', group_id=group.id)
+
+    paid_map = {member.id: Decimal('0') for member in members}
+    owed_map = {member.id: Decimal('0') for member in members}
+
+    for expense in expenses:
+        paid_map[expense.paid_by_id] += expense.amount
+        for share in expense.shares.all():
+            owed_map[share.member_id] += share.amount_owed
+
+    balances = []
+    for member in members:
+        net = (paid_map[member.id] - owed_map[member.id]).quantize(Decimal('0.01'))
+        balances.append({'member': member, 'paid': paid_map[member.id], 'owed': owed_map[member.id], 'net': net})
+
+    creditors = []
+    debtors = []
+    for row in balances:
+        if row['net'] > 0:
+            creditors.append([row['member'].name, row['net']])
+        elif row['net'] < 0:
+            debtors.append([row['member'].name, abs(row['net'])])
+
+    settlements = []
+    i = j = 0
+    while i < len(debtors) and j < len(creditors):
+        debtor_name, debt = debtors[i]
+        creditor_name, credit = creditors[j]
+        transfer = min(debt, credit).quantize(Decimal('0.01'))
+        settlements.append({'from': debtor_name, 'to': creditor_name, 'amount': transfer})
+        debt -= transfer
+        credit -= transfer
+        debtors[i][1] = debt
+        creditors[j][1] = credit
+        if debt == 0:
+            i += 1
+        if credit == 0:
+            j += 1
+
+    return render(request, 'split_group_detail.html', {
+        'group': group,
+        'members': members,
+        'expenses': expenses,
+        'member_form': member_form,
+        'expense_form': expense_form,
+        'balances': balances,
+        'settlements': settlements,
+    })

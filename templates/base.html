@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Cash Draw{% endblock %}</title>
+    <title>{% block title %}NestEgg Compass{% endblock %}</title>
     <!-- Bootstrap CSS -->
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 
@@ -28,6 +28,12 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-white" href="{% url 'purchase_transactions' %}">Purchases</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'money_tracker' %}">Money Tracker</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'split_groups' %}">Split Groups</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-white" href="{% url 'customer_list' %}">Customers</a>
