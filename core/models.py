@@ -155,6 +155,116 @@ class PTransaction(models.Model):
     def __str__(self):
         return f"{self.supplier.name} - {self.total_amount}"
 
+
+class ExpenseCategory(models.Model):
+    CATEGORY_TYPES = [
+        ('income', 'Income'),
+        ('expense', 'Expense'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expense_categories')
+    name = models.CharField(max_length=120)
+    category_type = models.CharField(max_length=10, choices=CATEGORY_TYPES, default='expense')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'name', 'category_type')
+        ordering = ['category_type', 'name']
+
+    def __str__(self):
+        return f"{self.name} ({self.category_type})"
+
+
+class MoneyTransaction(models.Model):
+    TRANSACTION_TYPES = [
+        ('income', 'Income'),
+        ('expense', 'Expense'),
+    ]
+
+    PAYMENT_MODES = [
+        ('cash', 'Cash'),
+        ('card', 'Card'),
+        ('wallet', 'Wallet'),
+        ('bank', 'Bank Transfer'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='money_transactions')
+    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
+    category = models.ForeignKey(ExpenseCategory, on_delete=models.SET_NULL, null=True, blank=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    currency = models.CharField(max_length=10, default='INR')
+    payment_mode = models.CharField(max_length=10, choices=PAYMENT_MODES, default='cash')
+    note = models.CharField(max_length=255, blank=True)
+    date = models.DateField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+
+
+class Budget(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budgets')
+    category = models.ForeignKey(ExpenseCategory, on_delete=models.CASCADE)
+    month = models.DateField(help_text='Use first day of month for budget month')
+    limit_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'category', 'month')
+        ordering = ['-month', 'category__name']
+
+
+class SplitGroup(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='split_groups')
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    currency = models.CharField(max_length=10, default='INR')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.name
+
+
+class GroupMember(models.Model):
+    group = models.ForeignKey(SplitGroup, on_delete=models.CASCADE, related_name='members')
+    name = models.CharField(max_length=120)
+    email = models.EmailField(blank=True)
+
+    class Meta:
+        unique_together = ('group', 'name')
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.name} ({self.group.name})"
+
+
+class GroupExpense(models.Model):
+    SPLIT_METHODS = [
+        ('equal', 'Equal'),
+        ('custom', 'Custom Amount'),
+        ('percentage', 'Percentage'),
+    ]
+
+    group = models.ForeignKey(SplitGroup, on_delete=models.CASCADE, related_name='expenses')
+    paid_by = models.ForeignKey(GroupMember, on_delete=models.CASCADE, related_name='paid_expenses')
+    description = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    split_method = models.CharField(max_length=20, choices=SPLIT_METHODS, default='equal')
+    date = models.DateField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class GroupExpenseShare(models.Model):
+    expense = models.ForeignKey(GroupExpense, on_delete=models.CASCADE, related_name='shares')
+    member = models.ForeignKey(GroupMember, on_delete=models.CASCADE, related_name='expense_shares')
+    amount_owed = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        unique_together = ('expense', 'member')
+
 ######################################################
 
 

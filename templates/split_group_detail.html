@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}{{ group.name }}{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2>{{ group.name }}</h2>
+    <p>{{ group.description }}</p>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">Add Member</div>
+                <div class="card-body">
+                    <form method="post">{% csrf_token %}
+                        {{ member_form.as_p }}
+                        <button class="btn btn-outline-primary btn-sm" name="add_member" type="submit">Add Member</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header">Members</div>
+                <ul class="list-group list-group-flush">
+                    {% for m in members %}<li class="list-group-item">{{ m.name }}</li>{% empty %}<li class="list-group-item">No members.</li>{% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card mb-3">
+                <div class="card-header">Add Shared Expense</div>
+                <div class="card-body">
+                    <form method="post">{% csrf_token %}
+                        {{ expense_form.as_p }}
+                        <h6>Custom Amount / Percentage (for custom/percentage split)</h6>
+                        <div class="row">
+                            {% for m in members %}
+                            <div class="col-md-6">
+                                <label>{{ m.name }} Amount</label>
+                                <input class="form-control form-control-sm" type="number" step="0.01" name="custom_{{ m.id }}">
+                                <label class="mt-1">{{ m.name }} %</label>
+                                <input class="form-control form-control-sm" type="number" step="0.01" name="percent_{{ m.id }}">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button class="btn btn-primary mt-3" name="add_expense" type="submit">Add Expense</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header">Balances</div>
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Member</th><th>Paid</th><th>Owes</th><th>Net</th></tr></thead>
+                    <tbody>
+                        {% for row in balances %}
+                        <tr><td>{{ row.member.name }}</td><td>₹ {{ row.paid }}</td><td>₹ {{ row.owed }}</td><td>₹ {{ row.net }}</td></tr>
+                        {% empty %}<tr><td colspan="4">No balance data.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Settlement Suggestions</div>
+                <ul class="list-group list-group-flush">
+                    {% for s in settlements %}
+                    <li class="list-group-item">{{ s.from }} pays {{ s.to }}: ₹ {{ s.amount }}</li>
+                    {% empty %}
+                    <li class="list-group-item">No settlements pending.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

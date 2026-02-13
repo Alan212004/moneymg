@@ -1,5 +1,8 @@
 from django import forms
-from .models import Customer, Supplier, STransaction, PTransaction
+from .models import (
+    Customer, Supplier, STransaction, PTransaction,
+    ExpenseCategory, MoneyTransaction, Budget, SplitGroup, GroupMember, GroupExpense
+)
 from django.core.exceptions import ValidationError
 from .models import BalanceHistory
 from .models import Product
@@ -108,3 +111,67 @@ class SupplierForm(forms.ModelForm):
         if len(name) < 2 or len(name) > 100:
             raise ValidationError('Name must be between 2 and 100 characters long.')
         return name
+
+
+class ExpenseCategoryForm(forms.ModelForm):
+    class Meta:
+        model = ExpenseCategory
+        fields = ['name', 'category_type']
+
+
+class MoneyTransactionForm(forms.ModelForm):
+    class Meta:
+        model = MoneyTransaction
+        fields = ['transaction_type', 'category', 'amount', 'currency', 'payment_mode', 'note', 'date']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['category'].queryset = ExpenseCategory.objects.filter(user=user)
+
+
+class BudgetForm(forms.ModelForm):
+    class Meta:
+        model = Budget
+        fields = ['category', 'month', 'limit_amount']
+        widgets = {
+            'month': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['category'].queryset = ExpenseCategory.objects.filter(user=user, category_type='expense')
+
+
+class SplitGroupForm(forms.ModelForm):
+    class Meta:
+        model = SplitGroup
+        fields = ['name', 'description', 'currency']
+
+
+class GroupMemberForm(forms.ModelForm):
+    class Meta:
+        model = GroupMember
+        fields = ['name', 'email']
+
+
+class GroupExpenseForm(forms.ModelForm):
+    class Meta:
+        model = GroupExpense
+        fields = ['paid_by', 'description', 'amount', 'split_method', 'date']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        group = kwargs.pop('group', None)
+        super().__init__(*args, **kwargs)
+        if group:
+            self.fields['paid_by'].queryset = GroupMember.objects.filter(group=group)
+

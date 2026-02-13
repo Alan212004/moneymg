@@ -8,6 +8,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('', views.dashboard_view, name='dashboard'),
     path('transaction-success/', views.transaction_success, name='transaction_success'),
+    path('money-tracker/', views.money_tracker, name='money_tracker'),
+    path('split-groups/', views.split_groups, name='split_groups'),
+    path('split-groups/<int:group_id>/', views.split_group_detail, name='split_group_detail'),
     path('transactions/sales/', views.sales_transactions, name='sales_transactions'),
     path('transactions/purchase/', views.purchase_transactions, name='purchase_transactions'),
 

@@ -1,5 +1,8 @@
 from django.contrib import admin
-from .models import Customer, Supplier, STransaction, PTransaction, Product
+from .models import (
+    Customer, Supplier, STransaction, PTransaction, Product,
+    ExpenseCategory, MoneyTransaction, Budget, SplitGroup, GroupMember, GroupExpense, GroupExpenseShare
+)
 
 
 
@@ -12,3 +15,10 @@ admin.site.register(Customer)
 admin.site.register(Product)
 admin.site.register(STransaction)
 admin.site.register(PTransaction)
+admin.site.register(ExpenseCategory)
+admin.site.register(MoneyTransaction)
+admin.site.register(Budget)
+admin.site.register(SplitGroup)
+admin.site.register(GroupMember)
+admin.site.register(GroupExpense)
+admin.site.register(GroupExpenseShare)

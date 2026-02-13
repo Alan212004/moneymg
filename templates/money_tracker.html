@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Money Tracker{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">NestEgg Compass - Money Tracker</h2>
+
+    <div class="row mb-3">
+        <div class="col-md-4"><div class="card border-success"><div class="card-body"><h5>Total Income</h5><h4>₹ {{ total_income }}</h4></div></div></div>
+        <div class="col-md-4"><div class="card border-danger"><div class="card-body"><h5>Total Expense</h5><h4>₹ {{ total_expense }}</h4></div></div></div>
+        <div class="col-md-4"><div class="card border-primary"><div class="card-body"><h5>Net Savings</h5><h4>₹ {{ net_savings }}</h4></div></div></div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">Create Category</div>
+                <div class="card-body">
+                    <form method="post">{% csrf_token %}
+                        {{ category_form.as_p }}
+                        <button class="btn btn-outline-primary btn-sm" type="submit" name="create_category">Save Category</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header">Set Monthly Budget</div>
+                <div class="card-body">
+                    <form method="post">{% csrf_token %}
+                        {{ budget_form.as_p }}
+                        <button class="btn btn-outline-warning btn-sm" type="submit" name="create_budget">Save Budget</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card mb-3">
+                <div class="card-header">Add Income / Expense</div>
+                <div class="card-body">
+                    <form method="post">{% csrf_token %}
+                        {{ transaction_form.as_p }}
+                        <button class="btn btn-primary" type="submit">Add Transaction</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header">Recent Transactions</div>
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th><th>Mode</th></tr></thead>
+                    <tbody>
+                    {% for tx in transactions %}
+                    <tr>
+                        <td>{{ tx.date }}</td>
+                        <td>{{ tx.transaction_type }}</td>
+                        <td>{{ tx.category }}</td>
+                        <td>₹ {{ tx.amount }}</td>
+                        <td>{{ tx.payment_mode }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5">No transactions yet.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Budget Usage</div>
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Month</th><th>Category</th><th>Limit</th><th>Spent</th><th>Usage</th></tr></thead>
+                    <tbody>
+                    {% for row in budget_rows %}
+                    <tr>
+                        <td>{{ row.budget.month|date:'M Y' }}</td>
+                        <td>{{ row.budget.category.name }}</td>
+                        <td>₹ {{ row.budget.limit_amount }}</td>
+                        <td>₹ {{ row.spent }}</td>
+                        <td>{{ row.usage }}%</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5">No budgets configured.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
